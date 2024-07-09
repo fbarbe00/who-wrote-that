@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who sent this s#it?</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .dark .bg-background {
+            background-color: #0B141A;
+        }
+
+        .dark .text-foreground {
+            color: #FFFFFF;
+        }
+
+        .dark .border-border {
+            border-color: #5a5a5a;
+        }
+
+        .dark .bg-primary {
+            background-color: #005C4B;
+        }
+
+        .dark .bg-secondary {
+            background-color: #202C33;
+        }
+
+        .dark .bg-destructive {
+            background-color: #d12b2b;
+        }
+
+        .dark .bg-muted {
+            background-color: #7a7a7a;
+        }
+
+        .dark .bg-accent {
+            background-color: #5a5a5a;
+        }
+
+        .dark .bg-popover {
+            background-color: #182026;
+        }
+
+        .dark .bg-card {
+            background-color: #202C33;
+        }
+
+        .scrollable-div {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="dark bg-background text-foreground h-screen flex flex-col items-center justify-center">
+    <h1 class="text-4xl font-bold mb-6">Who sent this s#it?</h1>
+    <button class="bg-primary text-foreground px-6 py-3 rounded mb-4" onclick="window.location.href='/create_game'">
+        Create New Game
+    </button>
+    <div class="mb-6">
+        <input id="gameId" type="text" placeholder="Enter Game ID"
+            class="border border-border bg-input text-foreground px-4 py-2 rounded-l" />
+        <button onclick="joinGame()" class="bg-secondary text-foreground px-4 py-2 rounded-r">Join Game</button>
+    </div>
+    <div class="bg-card text-foreground p-4 rounded shadow-md w-11/12 md:w-3/4 lg:w-1/2 scrollable-div">
+        <h2 class="text-2xl font-semibold mb-2">What is this?</h2>
+        <p class="text-muted">
+            Welcome to "Who sent this s#it?", a little game where you guess who sent random funny/weird messages from your
+            group chat. Currently, only WhatsApp chat data is supported. To get started, follow these steps:
+        </p>
+        <ol class="text-muted list-decimal list-inside mb-2">
+            <li>Export your WhatsApp chat data from an English-speaking phone.</li>
+            <li>Download and install <a href="https://ollama.com/download" class="text-primary">Ollama</a>.</li>
+            <li>Install the necessary dependencies:
+                <pre><code class="bash">pip install whatstk ollama tqdm</pre>
+            </li>
+            <!-- <div class="mt-4">
+                <p class="text-muted mb-2">What kind of computer do you have?</p>
+                <button onclick="setModel('qwen2:0.5b')" class="bg-secondary text-foreground px-4 py-2 rounded mb-2">I
+                    don't know/I have
+                    a CPU</button>
+                <button onclick="setModel('llama3:8b')" class="bg-secondary text-foreground px-4 py-2 rounded mb-2">I
+                    have a
+                    GPU</button>
+                <button onclick="setModel('llama3:70b')" class="bg-secondary text-foreground px-4 py-2 rounded mb-2">I
+                    have
+                    a beefy GPU</button>
+            </div> -->
+            <li>Execute the following Python code to process your chat:
+                <pre><code class="python" id="main_code">## Step 1: read WhatsApp chat
+from whatstk import df_from_whatsapp
+import re
+DEBUG = False
+OLLAMA_MODEL = 'qwen2:0.5b'
+df = df_from_whatsapp("chat.txt")
+
+df = df[~df['message'].str.contains('omitted')]
+df = df[~df['message'].str.contains('live location shared')]
+df = df.dropna(subset=['message'])
+
+usernames = df['username'].unique()
+phone_numbers = set(df['message'].str.extract(r'@(\d{11,})').dropna().values.flatten())
+if phone_numbers:
+    users_string = " - ".join([f"{name}: {i}" for i, name in enumerate(usernames)])
+    for p in phone_numbers:
+        try:
+            i = int(input(f"Which username does {p} belong to? {users_string}"))
+            df['message'] = df['message'].str.replace(f'@{p}', usernames[i])
+        except:
+            print(f"Invalid input for {p} - must be a number from 0 to {len(usernames)-1}")
+
+for i, username in enumerate(usernames):
+    df['username'] = df['username'].str.replace(username, f'Person {i+1}')
+    df['message'] = df['message'].str.replace(username, f'<Person {i+1}>', flags=re.IGNORECASE)
+
+    print(f'Person {i+1} -> {username}')
+
+index_last = 0
+try:
+    index_last = df[df['score'].notnull()].index[-1] - 2
+    print(f"Detected scores, restarting from index {index_last}...")
+except:
+    pass
+
+## Step 2: find funny messages
+import ollama
+from tqdm import tqdm
+instructions = {'role': 'system', 'content': 'On a scale from 1 to 5, how weird is this conversation? [ONLY REPLY WITH A NUMBER - 1 is not weird, 5 is very weird]'}
+
+# iterate through all messages, three at a time
+for i in tqdm(range(index_last, len(df)-2)):
+    messages = f"{df.iloc[i]['username']}: {df.iloc[i]['message']}\n"
+    messages += f"{df.iloc[i+1]['username']}: {df.iloc[i+1]['message']}\n"
+    messages += f"{df.iloc[i+2]['username']}: {df.iloc[i+2]['message']}\n"
+    response = ollama.chat(
+        model=OLLAMA_MODEL,
+        messages=[instructions, {'role': 'user', 'content': messages}],
+        options={'num_predict': 2}
+    )['message']['content']
+    response = llm_response(messages)
+    try:
+        score = int(response[:2].replace(".", "").strip())
+        df.loc[i+2, 'score'] = score
+        if score > 3 and DEBUG:
+            tqdm.write(messages)
+    except Exception as e:
+        tqdm.write(f"Error: {e} - {response}")
+
+# remove nan values
+df = df.dropna(subset=['message'])
+df.to_csv("chat_scores.csv", index=False)
+                </pre>
+            </li>
+        </ol>
+        <p class="text-muted">
+            Once you have processed the chat data, you'll get a file with the funniest messages scored. Use this file to
+            start playing the game!
+        </p>
+    </div>
+    <script>
+        let initial_code = document.getElementById('main_code').innerText;
+
+        function joinGame() {
+            const gameId = document.getElementById('gameId').value;
+            if (gameId) {
+                window.location.href = '/game/' + gameId;
+            }
+        }
+
+        function setModel(selectedModel) {
+            model = selectedModel;
+            e = document.getElementById('main_code');
+            e.innerText = initial_code.replace(/OLLAMA_MODEL = '.*'/, `OLLAMA_MODEL = '${model}'`);
+        }
+
+        hljs.initHighlightingOnLoad();
+        
+    </script>
+</body>
+
+</html>

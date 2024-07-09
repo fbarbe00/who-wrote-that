@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
+  <script type="text/javascript">
+    window.tailwind.config = {
+      darkMode: ['class'],
+      theme: {
+        extend: {
+          colors: {
+            border: '#5a5a5a',
+            input: '#5a5a5a',
+            ring: '#5a5a5a',
+            background: '#0B141A',
+            foreground: '#FFFFFF',
+            primary: {
+              DEFAULT: '#005C4B',
+              foreground: '#FFFFFF',
+            },
+            secondary: {
+              DEFAULT: '#202C33',
+              foreground: '#FFFFFF',
+            },
+            destructive: {
+              DEFAULT: '#d12b2b',
+              foreground: '#FFFFFF',
+            },
+            muted: {
+              DEFAULT: '#7a7a7a',
+              foreground: '#FFFFFF',
+            },
+            accent: {
+              DEFAULT: '#5a5a5a',
+              foreground: '#FFFFFF',
+            },
+            popover: {
+              DEFAULT: '#182026',
+              foreground: '#FFFFFF',
+            },
+            card: {
+              DEFAULT: '#202C33',
+              foreground: '#FFFFFF',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    .center-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .score {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background-color: #202C33;
+      color: #FFFFFF;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+    }
+  </style>
+  <script type="text/javascript">
+    
+    let score = localStorage.getItem('score') || 0;
+    score = parseInt(score);
+    window.addEventListener('DOMContentLoaded', () => {
+      const scoreElement = document.createElement('div');
+      scoreElement.classList.add('score');
+      scoreElement.textContent = 'Score: ' + score;
+      document.body.appendChild(scoreElement);
+    });
+
+    function submitVotes() {
+      const selectElements = document.querySelectorAll('select');
+      let correctAnswers = 0;
+      
+      selectElements.forEach(select => {
+        const selectedValue = select.value;
+        const correctValue = select.getAttribute('data-solution');
+        if (selectedValue === correctValue) {
+          correctAnswers++;
+          select.style.color = 'green';
+          // show emoji
+          const correctOption = document.createElement('span');
+          correctOption.textContent = ' ✅';
+          
+          select.parentElement.appendChild(correctOption);
+        } else {
+          select.style.color = 'red';
+          select.style.textDecoration = 'line-through';
+          const correctOption = document.createElement('span');
+          // correctOption.textContent = ` ${correctValue}`;
+          correctOption.textContent = ' ❌ Correct: ' + correctValue;
+          correctOption.style.color = 'green';
+          select.parentElement.appendChild(correctOption);
+        }
+        const author = select.getAttribute('data-author');
+        const messageContents = document.querySelectorAll('.message_content');
+        messageContents.forEach(content => {
+          content.innerHTML = content.innerHTML.replace(author, correctValue);
+        });
+        const messageAuthors = document.querySelectorAll('.message_author');
+        messageAuthors.forEach(authorElement => {
+          if (authorElement.textContent === author) {
+            authorElement.textContent = correctValue;
+          }
+        });
+        select.disabled = true;
+      });
+      
+      score += correctAnswers;
+      localStorage.setItem('score', score);
+      updateScoreDisplay();
+      animateScore(correctAnswers);
+      document.querySelector('button').textContent = 'Next';
+      document.querySelector('button').setAttribute('onclick', `window.location.href = '/game/{{ game_id }}'`);
+    }
+    function updateScoreDisplay() {
+      const scoreElement = document.querySelector('.score');
+      scoreElement.textContent = `Score: ${score}`;
+    }
+
+    function animateScore(correctAnswers) {
+      const scoreElement = document.querySelector('.score');
+      scoreElement.classList.add('animate-pulse');
+      setTimeout(() => {
+        scoreElement.classList.remove('animate-pulse');
+      }, 1000);
+    }
+  </script>
+</head>
+<body class="bg-background text-foreground h-screen p-4">
+<div class="center-box">
+  <h1 class="text-2xl font-bold mb-4">Who sent this?</h1>
+  <div class="bg-secondary text-secondary-foreground p-4 rounded-lg w-full max-w-lg mx-auto">
+    <div class="bg-secondary text-secondary-foreground p-4 rounded-t-lg flex items-center justify-between">
+      <div class="flex items-center">
+        <img src="https://placehold.co/40x40" alt="group-avatar" class="rounded-full mr-2" />
+        <div>
+          <div class="font-bold">{{ group.name }}</div>
+          <div class="text-sm text-muted-foreground">{{ group.members }}</div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="/" class="cursor-pointer" title="Return to home">
+          <img src="https://img.icons8.com/ios-glyphs/24/FFFFFF/long-arrow-left.png" alt="back-icon" />
+        </a>
+        <a href="/game/{{ game_id }}/delete" class="cursor-pointer" title="Delete this game" onclick="return confirm('Are you sure you want to delete this game? This action cannot be undone.')">
+          <img src="https://img.icons8.com/material-rounded/24/FFFFFF/delete-forever.png" alt="delete-icon" />
+        </a>
+      </div>
+    </div>
+    <div class="bg-popover text-popover-foreground p-4 rounded-b-lg space-y-4">
+      <div class="text-center text-sm text-muted-foreground">{{ messages[0].date }}</div>
+      {% for message in messages %}
+      {% if message.author != messages[-1].author %}
+      <div class="flex">
+        <div class="bg-secondary text-secondary-foreground p-2 rounded-lg max-w-xs">
+          <div class="font-bold message_author">{{ message.author }}</div>
+          <div class="message_content">{{ message.content }}</div>
+          <div class="text-xs text-muted-foreground ml-2 self-end">{{ message.time }}</div>
+        </div>
+      </div>
+      {% else %}
+      <div class="flex justify-end">
+        <div class="bg-primary text-primary-foreground p-2 rounded-lg max-w-xs">
+          <div class="font-bold message_author">{{ message.author }}</div>
+          <div class="message_content">{{ message.content }}</div>
+          <div class="text-xs text-muted-foreground ml-2 self-end">{{ message.time }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  <div class="mt-4 bg-popover text-popover-foreground p-4 rounded-lg w-full max-w-lg space-y-4">
+    {% for i in range(unique_authors|length) %}
+    <div>
+      <label class="block text-sm">Who is {{ unique_authors[i] }}?</label>
+      <select class="form-select mt-1 block w-full" data-solution="{{ solution[i] }}" data-author="{{ unique_authors[i] }}" style="color: black;">
+        <option value="" selected>Select a member</option>
+        {% for member in members %}
+        <option value="{{ member }}">{{ member }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+    <button class="mt-4 bg-primary text-primary-foreground p-2 rounded" onclick="submitVotes()">Submit</button>
+  </div>
+</div>
+</body>
+</html>

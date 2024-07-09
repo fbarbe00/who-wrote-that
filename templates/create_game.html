@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
+  <script type="text/javascript">
+    window.tailwind.config = {
+      darkMode: ['class'],
+      theme: {
+        extend: {
+          colors: {
+            border: '#5a5a5a',
+            input: '#5a5a5a',
+            ring: '#5a5a5a',
+            background: '#0B141A',
+            foreground: '#FFFFFF',
+            primary: {
+              DEFAULT: '#005C4B',
+              foreground: '#FFFFFF',
+            },
+            secondary: {
+              DEFAULT: '#202C33',
+              foreground: '#FFFFFF',
+            },
+            destructive: {
+              DEFAULT: '#d12b2b',
+              foreground: '#FFFFFF',
+            },
+            muted: {
+              DEFAULT: '#7a7a7a',
+              foreground: '#FFFFFF',
+            },
+            accent: {
+              DEFAULT: '#5a5a5a',
+              foreground: '#FFFFFF',
+            },
+            popover: {
+              DEFAULT: '#182026',
+              foreground: '#FFFFFF',
+            },
+            card: {
+              DEFAULT: '#202C33',
+              foreground: '#FFFFFF',
+            },
+          },
+        },
+      },
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer base {
+      :root {
+        --background: 11 8% 10%;
+        --foreground: 0 0% 100%;
+        --card: 220 13% 18%;
+        --card-foreground: 0 0% 100%;
+        --popover: 220 13% 18%;
+        --popover-foreground: 0 0% 100%;
+        --primary: 180 100% 20%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 220 13% 18%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 0 0% 48%;
+        --muted-foreground: 0 0% 100%;
+        --accent: 0 0% 36%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 65% 45%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 0 0% 35%;
+        --input: 0 0% 35%;
+        --ring: 180 100% 20%;
+        --radius: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body class="dark" onload="showPlayerInputs()">
+  <div class="bg-background text-primary-foreground min-h-screen flex items-center justify-center">
+    <div class="bg-card w-full max-w-md p-8 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-bold mb-4">Create a New Game</h2>
+      {% if error_message %}
+      <div class="bg-destructive text-destructive-foreground p-4 rounded-lg mb-4">
+        <p>{{ error_message }}</p>
+      </div>
+      {% endif %}
+      <form id="gameForm" action="/create_game" method="POST" enctype="multipart/form-data">
+        <div class="mb-4">
+          <label for="file" class="block text-sm font-medium">Upload File</label>
+          <input type="file" id="file" name="chat_scores" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" required accept=".csv" />
+        </div>
+        <div class="mb-4">
+          <label for="group_name" class="block text-sm font-medium">Group Name</label>
+          <input type="text" id="group_name" name="group_name" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" required />
+        </div>
+        <div class="mb-4">
+          <label for="players" class="block text-sm font-medium">Member Count</label>
+          <input type="number" id="players" name="players" value="3" onchange="showPlayerInputs()" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" />
+        </div>
+        <div id="playerInputs" class="mb-4"></div>
+        <input type="hidden" id="members" name="members">
+        <div class="mb-4">
+          <input type="checkbox" id="terms" name="terms" class="mr-2" required />
+          <label for="terms" class="text-sm">I have received consent from all members to upload this file.</label>
+        </div>
+        <button type="submit" class="w-full bg-primary text-primary-foreground py-2 rounded-lg hover:bg-primary/80">Create Game</button>
+        </br><i>Your data won't be used for anything and can easily be deleted at any time</i>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function showPlayerInputs() {
+      const playersInput = document.getElementById('players');
+      const numPlayers = parseInt(playersInput.value);
+      const playerInputsContainer = document.getElementById('playerInputs');
+
+      // Clear previous inputs
+      playerInputsContainer.innerHTML = '';
+
+      // Create input boxes for each player
+      for (let i = 0; i < numPlayers; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.required = true;
+        input.name = `player${i + 1}`;
+        input.placeholder = `Person ${i + 1} Name`;
+        input.className = 'w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground';
+        playerInputsContainer.appendChild(input);
+      }
+    }
+
+    document.getElementById('gameForm').addEventListener('submit', function(event) {
+      const playerInputsContainer = document.getElementById('playerInputs');
+      const playerInputs = playerInputsContainer.querySelectorAll('input[type="text"]');
+      const membersInput = document.getElementById('members');
+      const playerNames = [];
+
+      playerInputs.forEach(input => {
+        playerNames.push(input.value);
+      });
+
+      membersInput.value = playerNames.join(',');
+    });
+  </script>
+</body>
+</html>
