@@ -9,12 +9,21 @@ import json
 import os
 import time
 
+# Use environment variable to determine the data directory
+DATA_DIR = os.getenv("DATA_DIR", ".")
+GAMES_FILE = os.path.join(DATA_DIR, "games.json")
+CHAT_DATA_DIR = os.path.join(DATA_DIR, "chat_data")
+
+# Ensure directories exist
+os.makedirs(CHAT_DATA_DIR, exist_ok=True)
+
 templates = Jinja2Templates(directory="templates")
 
 app = FastAPI()
 
-if os.path.exists("games.json"):
-    with open("games.json", "r") as f:
+# Load games data from the volume
+if os.path.exists(GAMES_FILE):
+    with open(GAMES_FILE, "r") as f:
         games = json.load(f)
 else:
     games = {}
@@ -42,7 +51,7 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
     played_indices = list(set(played_indices))
     game["played_indices"] = played_indices
 
-    with open("games.json", "w") as f:
+    with open(GAMES_FILE, "w") as f:
         json.dump(games, f)
 
     return_data = {
@@ -92,7 +101,7 @@ async def render_create_game(request: Request):
 @app.post("/create_game", response_class=HTMLResponse)
 async def create_game(request: Request, chat_scores: UploadFile = File(...), group_name: str = Form(...), members: str = Form(...)):
     game_id = str(uuid.uuid4())
-    cvs_path = f"chat_data/{game_id}.csv"
+    cvs_path = os.path.join(CHAT_DATA_DIR, f"{game_id}.csv")
     try:
         with open(cvs_path, "wb") as f:
             f.write(await chat_scores.read())
@@ -129,7 +138,7 @@ async def create_game(request: Request, chat_scores: UploadFile = File(...), gro
         "created_at": time.time(),
     }
 
-    with open("games.json", "w") as f:
+    with open(GAMES_FILE, "w") as f:
         json.dump(games, f)
 
     response = RedirectResponse(url=f"/game/{game_id}", status_code=303)
@@ -154,7 +163,7 @@ def delete_game(game_id):
     if os.path.exists(filename):
         os.remove(filename)
     games.pop(game_id, None)
-    with open("games.json", "w") as f:
+    with open(GAMES_FILE, "w") as f:
         json.dump(games, f)
 
 @app.get("/game/{game_id}/delete")
@@ -171,7 +180,4 @@ async def home(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    os.makedirs("chat_data", exist_ok=True)
-    uvicorn.run(app, host="localhost", port=8000)
-else:
-    DATA_DIR = os.getenv("DATA_DIR", "/app/data")
+    uvicorn.run(app, host="0.0.0.0", port=8000)
