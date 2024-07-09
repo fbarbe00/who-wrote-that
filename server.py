@@ -69,7 +69,10 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
             "author": game["members_nickname"] + " " + str(anonymized_index + 1)
         })
 
-    return_data["unique_authors"] = list(set(m["author"] for m in return_data["messages"]))
+    return_data["unique_authors"] = []
+    for m in return_data["messages"]:
+        if m["author"] not in return_data["unique_authors"]:
+            return_data["unique_authors"].append(m["author"])
     return_data["members"] = game["group"]["members"].split(",")
 
     for message in return_data["messages"]:
@@ -170,3 +173,5 @@ if __name__ == "__main__":
     import uvicorn
     os.makedirs("chat_data", exist_ok=True)
     uvicorn.run(app, host="localhost", port=8000)
+else:
+    DATA_DIR = os.getenv("DATA_DIR", "/app/data")
