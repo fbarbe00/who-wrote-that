@@ -99,7 +99,7 @@ async def render_create_game(request: Request):
     return templates.TemplateResponse("create_game.html", {"request": request})
 
 @app.post("/create_game", response_class=HTMLResponse)
-async def create_game(request: Request, chat_scores: UploadFile = File(...), group_name: str = Form(...), members: str = Form(...)):
+async def create_game(request: Request, chat_scores: UploadFile = File(...), group_name: str = Form(...), members: str = Form(...), members_nickname: str = Form(...), message_num: int = Form(...)):
     game_id = str(uuid.uuid4())
     cvs_path = os.path.join(CHAT_DATA_DIR, f"{game_id}.csv")
     try:
@@ -124,17 +124,22 @@ async def create_game(request: Request, chat_scores: UploadFile = File(...), gro
 
     df = df.dropna(subset=['message'])
 
-    if len(df) < 3:
+    if len(members.split(",")) < df['username'].nunique():
         os.remove(cvs_path)
-        error_message = "CSV file must have at least 3 messages"
+        error_message = "Number of members must be greater or equal to the number of unique authors in the chat"
+        return templates.TemplateResponse("create_game.html", {"request": request, "error_message": error_message, "num_members": df['username'].nunique()})
+
+    if len(df) < int(message_num):
+        os.remove(cvs_path)
+        error_message = f"CSV file must have at least {message_num} messages"
         return templates.TemplateResponse("create_game.html", {"request": request, "error_message": error_message})
     
     df.to_csv(cvs_path, index=False)
     games[game_id] = {
         "filename": cvs_path,
         "group": {"name": group_name, "members": members},
-        "message_num": 3,
-        "members_nickname": "Person",
+        "message_num": int(message_num),
+        "members_nickname": members_nickname.strip(),
         "created_at": time.time(),
     }
 

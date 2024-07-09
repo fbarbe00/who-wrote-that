@@ -32,6 +32,7 @@ df = df_from_whatsapp("chat.txt")
 
 df = df[~df['message'].str.contains('omitted')]
 df = df[~df['message'].str.contains('live location shared')]
+df['message'] = df['message'].str.replace(' <This message was edited>', '')
 df is df.dropna(subset=['message'])
 
 usernames = df['username'].unique()
@@ -73,7 +74,6 @@ for i in tqdm(range(index_last, len(df)-2)):
         messages=[instructions, {'role': 'user', 'content': messages}],
         options={'num_predict': 2}
     )['message']['content']
-    response = llm_response(messages)
     try:
         score = int(response[:2].replace(".", "").strip())
         df.loc[i+2, 'score'] = score
@@ -110,7 +110,7 @@ Enjoy the game!
 ## TODOs
 Things I'd like to add/improve:
 - run the llm analysis in the background with qwen2:0.5b
-- let the user rate the answer
+- add group picture
 - add multiplayer with sockets
 - also parse mentioned users (instead of ?)
 - add job to remove old scripts

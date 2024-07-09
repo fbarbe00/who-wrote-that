@@ -96,10 +96,27 @@
         </div>
         <div class="mb-4">
           <label for="players" class="block text-sm font-medium">Member Count</label>
-          <input type="number" id="players" name="players" value="3" onchange="showPlayerInputs()" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" />
+          <input type="number" id="players" name="players" value="{{num_members or 3}}" onchange="showPlayerInputs()" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" />
         </div>
         <div id="playerInputs" class="mb-4"></div>
         <input type="hidden" id="members" name="members">
+        <div class="mb-4">
+          <button type="button" onclick="document.getElementById('advancedOptionsContainer').classList.toggle('hidden')" class="text-sm">Advanced Options</button>
+        </div>
+        <div id="advancedOptionsContainer" class="hidden">
+          <div class="mb-4">
+            <label for="members_nickname" class="block text-sm font-medium">Members Nickname</label>
+            <input type="text" id="members_nickname" name="members_nickname" value="Person" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" />
+          </div>
+          <div class="mb-4">
+            <label for="message_num" class="block text-sm font-medium">Message Count</label>
+            <input type="number" id="message_num" name="message_num" value="3" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" />
+          </div>
+          <!-- <div class="mb-4">
+            <label for="image" class="block text-sm font-medium">Group Image</label>
+            <input type="file" id="image" name="image" class="w-full mt-1 py-2 px-3 border rounded-lg bg-input text-primary-foreground" accept="image/*" />
+          </div> -->
+        </div>
         <div class="mb-4">
           <input type="checkbox" id="terms" name="terms" class="mr-2" required />
           <label for="terms" class="text-sm">I have received consent from all members to upload this file.</label>
