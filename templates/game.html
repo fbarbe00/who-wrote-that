@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
   <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
+  <script type="module" src="https://md-block.verou.me/md-block.js"></script>
   <script type="text/javascript">
     window.tailwind.config = {
       darkMode: ['class'],
@@ -165,7 +166,7 @@
       <div class="flex">
         <div class="bg-secondary text-secondary-foreground p-2 rounded-lg max-w-xs">
           <div class="font-bold message_author">{{ message.author }}</div>
-          <div class="message_content">{{ message.content }}</div>
+          <md-block class="message_content">{{ message.content }}</md-block>
           <div class="text-xs text-muted-foreground ml-2 self-end">{{ message.time }}</div>
         </div>
       </div>
@@ -173,7 +174,7 @@
       <div class="flex justify-end">
         <div class="bg-primary text-primary-foreground p-2 rounded-lg max-w-xs">
           <div class="font-bold message_author">{{ message.author }}</div>
-          <div class="message_content">{{ message.content }}</div>
+          <md-block class="message_content">{{ message.content }}</md-block>
           <div class="text-xs text-muted-foreground ml-2 self-end">{{ message.time }}</div>
         </div>
       </div>
