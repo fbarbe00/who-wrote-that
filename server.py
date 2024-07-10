@@ -155,6 +155,9 @@ async def create_game(request: Request, chat_scores: UploadFile = File(...), gro
         os.remove(cvs_path)
         error_message = f"Failed to read CSV file: {e}"
         return templates.TemplateResponse("create_game.html", {"request": request, "error_message": error_message})
+    
+    if 'score' not in df.columns:
+        df['score'] = 3.1
 
     required_columns = {'username', 'message', 'date', 'score'}
     if not required_columns.issubset(df.columns):

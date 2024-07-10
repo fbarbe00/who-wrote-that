@@ -63,14 +63,18 @@
     </button>
     <div class="mb-6">
         <input id="gameId" type="text" placeholder="Enter Game ID"
-            class="border border-border bg-input text-foreground px-4 py-2 rounded-l" />
+            class="border border-border bg-input px-4 py-2 rounded-l" />
         <button onclick="joinGame()" class="bg-secondary text-foreground px-4 py-2 rounded-r">Join Game</button>
     </div>
     <div class="bg-card text-foreground p-4 rounded shadow-md w-11/12 md:w-3/4 lg:w-1/2 scrollable-div">
         <h2 class="text-2xl font-semibold mb-2">What is this?</h2>
         <p class="text-muted">
             Welcome to "Who sent this s#it?", a little game where you guess who sent random funny/weird messages from your
-            group chat. Currently, only WhatsApp chat data is supported. To get started, follow these steps:
+            group chat. Currently, only WhatsApp chat data is supported. 
+
+            Wanna run this on your own server? Follow the instructions <a href="https://github.com/fbarbe00/who-wrote-that">on the GitHub repo</a>.
+
+            To get started, follow these steps:
         </p>
         <ol class="text-muted list-decimal list-inside mb-2">
             <li>Export your WhatsApp chat data from an English-speaking phone.</li>
@@ -90,7 +94,7 @@
                     have
                     a beefy GPU</button>
             </div> -->
-            <li>Execute the following Python code to process your chat:
+            <li>Execute the following Python code to process your chat (latest version can be found <a href="https://github.com/fbarbe00/who-wrote-that/blob/main/funnymessages.py">on github</a>
                 <pre><code class="python" id="main_code">## Step 1: read WhatsApp chat
 from whatstk import df_from_whatsapp
 import re

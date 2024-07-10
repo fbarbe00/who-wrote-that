@@ -1,6 +1,6 @@
 # Who Sent This S#it?
 
-Welcome to "Who sent this s#it?", a fun game where you guess who sent random funny/weird messages from your group chat. Currently, only WhatsApp chat data is supported. 
+Welcome to "Who sent this s#it?", a fun game where you guess who sent random funny/weird messages from your group chat. Currently, only WhatsApp chat data works out of the box. Other chats must follow the same format: columns of the chat must be: `username, content, date, [score]`.
 
 ## Getting Started
 
