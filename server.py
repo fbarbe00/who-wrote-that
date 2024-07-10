@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
 import pandas as pd
@@ -8,6 +8,7 @@ import uuid
 import json
 import os
 import time
+import random
 
 # Use environment variable to determine the data directory
 DATA_DIR = os.getenv("DATA_DIR", ".")
@@ -43,8 +44,12 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
     required_columns = {'username', 'message', 'date', 'score'}
     if not required_columns.issubset(df.columns):
         raise HTTPException(status_code=400, detail="CSV file is missing required columns")
+    
+    score_threshold = 3
+    # make the score slightly random
+    score_threshold += random.random() * 0.5
 
-    sampled_index = df[df['score'] > 3].sample(1).index.item()
+    sampled_index = df[df['score'] > score_threshold].sample(1).index.item()
 
     played_indices = game.setdefault("played_indices", [])
     played_indices.append(sampled_index)
@@ -53,10 +58,34 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
 
     with open(GAMES_FILE, "w") as f:
         json.dump(games, f)
+    
+    try:
+        is_human_score = df.loc[sampled_index, "is_human_score"]
+        human_score = df.loc[sampled_index, "human_score"]
+        num_votes = df.loc[sampled_index, "human_score_count"]
+        if num_votes == 0:
+            human_score = None
+            review = ""
+        elif human_score > 3:
+            review = f"{num_votes} people found this conversation funny"
+        elif human_score > 2:
+            review = f"{num_votes} people found this conversation alright"
+        else:
+            review = f"{num_votes} people found this conversation boring"
+
+    except KeyError:
+        is_human_score = False
+        human_score = None
+        review = ""
 
     return_data = {
         "group": game["group"],
         "game_id": game_id,
+        "conversation_id": sampled_index,
+        "human_score_data": {
+            "review": review,
+            "is_human_score": is_human_score,
+        },
         "solution": [],
         "messages": []
     }
@@ -149,6 +178,23 @@ async def create_game(request: Request, chat_scores: UploadFile = File(...), gro
     response = RedirectResponse(url=f"/game/{game_id}", status_code=303)
     return response
 
+@app.post("/vote/{game_id}/{conversation_id}/{vote}")
+async def vote(request: Request, game_id: str, conversation_id: int, vote: float):
+    if game_id not in games:
+        return JSONResponse(content={"message": "Game not found"}, status_code=404)
+    df = pd.read_csv(games[game_id]["filename"])
+    if "human_score" not in df.columns:
+        df["human_score"] = 3
+        df["human_score_count"] = 0
+        df["is_human_score"] = False
+    df.loc[conversation_id, "human_score_count"] += 1
+    count = df.loc[conversation_id, "human_score_count"]
+    df.loc[conversation_id, "human_score"] = (df.loc[conversation_id, "human_score"] * (count - 1) + vote) / count
+    if count >= 3:
+        df.loc[conversation_id, "is_human_score"] = True
+        df.loc[conversation_id, "score"] = df.loc[conversation_id, "human_score"]
+    df.to_csv(games[game_id]["filename"], index=False)
+    return JSONResponse(content={"message": "Vote recorded successfully"})
 
 @app.get("/game/{game_id}", response_class=HTMLResponse)
 async def render_game(request: Request, game_id: str):

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>{{ group.name }} - Who wrote this s#%t?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
   <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
@@ -53,7 +54,7 @@
   <style>
     .center-box {
       display: flex;
-      justify-content: center;
+      /* justify-content: center; */
       align-items: center;
       height: 100vh;
       flex-direction: column;
@@ -80,7 +81,7 @@
     });
 
     function submitVotes() {
-      const selectElements = document.querySelectorAll('select');
+      const selectElements = document.querySelectorAll('select[data-solution]');
       let correctAnswers = 0;
       
       selectElements.forEach(select => {
@@ -181,6 +182,11 @@
       {% endif %}
       {% endfor %}
     </div>
+
+    {% if human_score_data.is_human_score %}
+    <span>✅ Human approved - </span>
+    {% endif %}
+    <i>{{ human_score_data.review }}</i>
   </div>
   <div class="mt-4 bg-popover text-popover-foreground p-4 rounded-lg w-full max-w-lg space-y-4">
     {% for i in range(unique_authors|length) %}
@@ -195,6 +201,34 @@
     </div>
     {% endfor %}
     <button class="mt-4 bg-primary text-primary-foreground p-2 rounded" onclick="submitVotes()">Submit</button>
+    <div class="mt-4">
+      Is this conversation funny?
+      <a class="cursor-pointer" onclick="submitVote(1)">|😐 No | </a>
+      <a class="cursor-pointer" onclick="submitVote(3.1)">🤷‍♂️ Mid | </a>
+      <a class="cursor-pointer" onclick="submitVote(5)">😄 Yes |</a>
+    </div>
+    <nav id="voteConfirmation"></nav>
+    
+    <script>
+      async function submitVote(vote) {
+        const url = `/vote/{{ game_id }}/{{conversation_id}}/${vote}`;
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+          });
+          if (response.ok) {
+            const data = await response.json();
+            document.getElementById('voteConfirmation').innerText = 'Thank you for your vote!';
+          } else {
+            document.getElementById('voteConfirmation').innerText = 'There was an error processing your vote.';
+          }
+        } catch (error) {
+          console.error('Error submitting vote:', error);
+          document.getElementById('voteConfirmation').innerText = 'There was an error processing your vote.';
+        }
+      }
+    </script>
+
   </div>
 </div>
 </body>

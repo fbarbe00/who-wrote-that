@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>Create a New Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
   <script src="https://unpkg.com/unlazy@0.11.3/dist/unlazy.with-hashing.iife.js" defer init></script>
@@ -84,6 +85,7 @@
       <div class="bg-destructive text-destructive-foreground p-4 rounded-lg mb-4">
         <p>{{ error_message }}</p>
       </div>
+      <i>⚠️ Make sure to read the instructions on <a href="/" class="text-primary">the homepage</a> before uploading your file.</i>
       {% endif %}
       <form id="gameForm" action="/create_game" method="POST" enctype="multipart/form-data">
         <div class="mb-4">
