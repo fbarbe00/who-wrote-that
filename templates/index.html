@@ -6,7 +6,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Who sent this s#it?</title>
+    <title>Who sent this s#%t?</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .dark .bg-background {
@@ -57,7 +57,7 @@
 </head>
 
 <body class="dark bg-background text-foreground h-screen flex flex-col items-center justify-center">
-    <h1 class="text-4xl font-bold mb-6">Who sent this s#it?</h1>
+    <h1 class="text-4xl font-bold mb-6">Who sent this s#%t?</h1>
     <button class="bg-primary text-foreground px-6 py-3 rounded mb-4" onclick="window.location.href='/create_game'">
         Create New Game
     </button>
@@ -69,7 +69,7 @@
     <div class="bg-card text-foreground p-4 rounded shadow-md w-11/12 md:w-3/4 lg:w-1/2 scrollable-div">
         <h2 class="text-2xl font-semibold mb-2">What is this?</h2>
         <p class="text-muted">
-            Welcome to "Who sent this s#it?", a little game where you guess who sent random funny/weird messages from your
+            Welcome to "Who sent this s#%t?", a little game where you guess who sent random funny/weird messages from your
             group chat. Currently, only WhatsApp chat data is supported. 
 
             Wanna run this on your own server? Follow the instructions <a href="https://github.com/fbarbe00/who-wrote-that">on the GitHub repo</a>.
@@ -81,27 +81,27 @@
             <li>Download and install <a href="https://ollama.com/download" class="text-primary">Ollama</a>.</li>
             <li>Use a local AI to determine which messages are funny. The full code is available <u><a href="https://github.com/fbarbe00/who-wrote-that/">here</a></u>
                 <pre><code class="python" id="main_code">
-                    # checkout the full code at https://github.com/fbarbe00/who-wrote-that/
-                    def llm_response(messages):
-                        response = ollama.chat(
-                            model=args.model,
-                            messages=[instructions, {'role': 'user', 'content': messages}],
-                            options={'num_predict': 2}
-                        )['message']['content']
-                        return response
+# checkout the full code at https://github.com/fbarbe00/who-wrote-that/
+def llm_response(messages):
+    response = ollama.chat(
+        model=args.model,
+        messages=[instructions, {'role': 'user', 'content': messages}],
+        options={'num_predict': 2}
+    )['message']['content']
+    return response
 
-                    for i in tqdm(range(index_last, len(df)-(args.num_messages-1))):
-                        messages = f"{df.iloc[i]['username']}: {df.iloc[i]['message']}\n"
-                        for j in range(1, args.num_messages):
-                            messages += f"{df.iloc[i+j]['username']}: {df.iloc[i+j]['message']}\n"
-                        response = llm_response(messages)
-                        try:
-                            score = int(''.join(filter(str.isdigit, response[:2])))
-                            df.loc[i+2, 'score'] = score
-                            if score > 3 and DEBUG:
-                                tqdm.write(messages)
-                        except Exception as e:
-                            tqdm.write(f"Error: {e} - {response}")
+for i in tqdm(range(index_last, len(df)-(args.num_messages-1))):
+    messages = f"{df.iloc[i]['username']}: {df.iloc[i]['message']}\n"
+    for j in range(1, args.num_messages):
+        messages += f"{df.iloc[i+j]['username']}: {df.iloc[i+j]['message']}\n"
+    response = llm_response(messages)
+    try:
+        score = int(''.join(filter(str.isdigit, response[:2])))
+        df.loc[i+2, 'score'] = score
+        if score > 3 and DEBUG:
+            tqdm.write(messages)
+    except Exception as e:
+        tqdm.write(f"Error: {e} - {response}")
                 </pre>
             </li>
         </ol>
