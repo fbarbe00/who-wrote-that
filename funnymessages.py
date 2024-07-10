@@ -15,7 +15,7 @@ parser.add_argument('--original_timezone', default='UTC', help='Original timezon
 parser.add_argument('--target_timezone', default='UTC', help='Target timezone to convert the chat into')
 parser.add_argument('--keep_deleted_messages', help='Keep deleted messages in the chat', default=0, action='store_true')
 parser.add_argument('--resume', help='If the input chat file has already been processed, resume from the last index', default=0, action='store_true')
-parser.add_argument('--language', default='english', help='The language of the chat')
+parser.add_argument('--model', default='llama3', help='The model to use for scoring. Smallest tested is qwen2:0.5b')
 args = parser.parse_args()
 
 DEBUG = True
@@ -80,11 +80,11 @@ except:
     pass
 
 ## Step 2: find funny messages
-instructions = {'role': 'system', 'content': f'On a scale from 1 to 5, how weird/funny is this {args.language} conversation? [ONLY REPLY WITH A NUMBER - 1 is not weird, 5 is very weird/funny]'}
+instructions = {'role': 'system', 'content': f'On a scale from 1 to 5, how weird/funny is this conversation? [ONLY REPLY WITH A NUMBER - 1 is not weird, 5 is very weird/funny]'}
 
 def llm_response(messages):
     response = ollama.chat(
-        model='qwen2:0.5b',
+        model=args.model,
         messages=[instructions, {'role': 'user', 'content': messages}],
         options={'num_predict': 2}
     )['message']['content']
