@@ -67,7 +67,7 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
         if num_votes == 0:
             human_score = None
             review = ""
-        elif human_score > 3:
+        elif human_score > 3.1:
             review = f"{num_votes} {people_str} found this conversation funny"
         elif human_score > 2:
             review = f"{num_votes} {people_str} found this conversation alright"

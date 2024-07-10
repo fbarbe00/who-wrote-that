@@ -122,8 +122,8 @@
       localStorage.setItem('score', score);
       updateScoreDisplay();
       animateScore(correctAnswers);
-      document.querySelector('button').textContent = 'Next';
-      document.querySelector('button').setAttribute('onclick', `window.location.href = '/game/{{ game_id }}'`);
+      document.getElementById('submitButton').textContent = 'Next';
+      document.getElementById('submitButton').setAttribute('onclick', `window.location.href = '/game/{{ game_id }}'`);
     }
     function updateScoreDisplay() {
       const scoreElement = document.querySelector('.score');
@@ -209,7 +209,7 @@
       </select>
     </div>
     {% endfor %}
-    <button class="mt-4 bg-primary text-primary-foreground p-2 rounded" onclick="submitVotes()">Submit</button>    
+    <button class="mt-4 bg-primary text-primary-foreground p-2 rounded" id="submitButton" onclick="submitVotes()">Submit</button>    
     <script>
       async function submitVote(vote) {
         const url = `/vote/{{ game_id }}/{{conversation_id}}/${vote}`;

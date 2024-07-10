@@ -109,8 +109,9 @@ Enjoy the game!
 
 ## TODOs
 Things I'd like to add/improve:
-- run the llm analysis in the background with qwen2:0.5b
-- add group picture
 - add multiplayer with sockets
+- run the llm analysis in the background with qwen2:0.5b
 - add job to remove old scripts
+- add group picture
+- find a proper name (and keep it consistent)
 - better color palets
