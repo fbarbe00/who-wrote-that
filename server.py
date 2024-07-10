@@ -113,13 +113,23 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
             return_data["unique_authors"].append(m["author"])
     return_data["members"] = game["group"]["members"].split(",")
 
+    extra_members = []
     for message in return_data["messages"]:
+        original_message = message["content"]
         for j, author in enumerate(game["group"]["members"].split(",")):
             person_placeholder = f"Person {j+1}"
-            if person_placeholder in seen_authors:
+            if person_placeholder in seen_authors and person_placeholder in original_message:
                 message["content"] = message["content"].replace(person_placeholder, game["members_nickname"] + " " + str(seen_authors.index(person_placeholder) + 1))
-            else:
-                message["content"] = message["content"].replace(person_placeholder, game["members_nickname"] + " ?")
+            elif person_placeholder in original_message:
+                if author not in extra_members:
+                    extra_members.append(author)
+                extra_member_index = extra_members.index(author) + len(seen_authors)
+                message["content"] = message["content"].replace(person_placeholder, game["members_nickname"] + " " + str(extra_member_index + 1))
+    
+    # add extra members to the unique_authors and solution list
+    for author in extra_members:
+        return_data["unique_authors"].append(game["members_nickname"] + " " + str(len(seen_authors) + extra_members.index(author) + 1))
+        return_data["solution"].append(author)
 
     return return_data
 

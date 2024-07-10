@@ -112,7 +112,5 @@ Things I'd like to add/improve:
 - run the llm analysis in the background with qwen2:0.5b
 - add group picture
 - add multiplayer with sockets
-- also parse mentioned users (instead of ?)
 - add job to remove old scripts
-- add option to change time zone
 - better color palets
