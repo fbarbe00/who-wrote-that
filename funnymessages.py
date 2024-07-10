@@ -13,7 +13,9 @@ parser.add_argument('chat_file', help='The WhatsApp chat file (.txt or .csv)')
 parser.add_argument('--num_messages', type=int, default=3, help='Number of messages to consider for each score')
 parser.add_argument('--original_timezone', default='UTC', help='Original timezone of the chat')
 parser.add_argument('--target_timezone', default='UTC', help='Target timezone to convert the chat into')
-parser.add_argument('--keep_deleted_messages', action='store_false', help='Keep deleted messages in the chat')
+parser.add_argument('--keep_deleted_messages', help='Keep deleted messages in the chat', default=0, action='store_true')
+parser.add_argument('--resume', help='If the input chat file has already been processed, resume from the last index', default=0, action='store_true')
+parser.add_argument('--language', default='english', help='The language of the chat')
 args = parser.parse_args()
 
 DEBUG = True
@@ -36,7 +38,7 @@ if not args.keep_deleted_messages:
     df = df[~df['message'].str.contains('This message was deleted')]
 
 prev_date = df['date'].iloc[0]
-df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S').dt.tz_localize(args.original_timezone).dt.tz_convert(args.target_timezone).dt.strftime('%Y-%m-%d %H:%M')
+df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M').dt.tz_localize(args.original_timezone).dt.tz_convert(args.target_timezone).dt.strftime('%Y-%m-%d %H:%M')
 # write an example of the conversion
 with open(log_file, 'w') as f:
     f.write(f"Converted {args.original_timezone} to {args.target_timezone}\n")
@@ -71,13 +73,14 @@ df.to_csv(tmp_cvs, index=False)
 
 index_last = 0
 try:
-    index_last = df[df['score'].notnull()].index[-1] - 2
-    print(f"Detected scores, restarting from index {index_last}...")
+    if args.resume:
+        index_last = df[df['score'].notnull()].index[-1] - 2
+        print(f"Detected scores, restarting from index {index_last}...")
 except:
     pass
 
 ## Step 2: find funny messages
-instructions = {'role': 'system', 'content': 'On a scale from 1 to 5, how weird is this conversation? [ONLY REPLY WITH A NUMBER - 1 is not weird, 5 is very weird]'}
+instructions = {'role': 'system', 'content': f'On a scale from 1 to 5, how weird/funny is this {args.language} conversation? [ONLY REPLY WITH A NUMBER - 1 is not weird, 5 is very weird/funny]'}
 
 def llm_response(messages):
     response = ollama.chat(

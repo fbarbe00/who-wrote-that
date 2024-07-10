@@ -63,15 +63,16 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
         is_human_score = df.loc[sampled_index, "is_human_score"]
         human_score = df.loc[sampled_index, "human_score"]
         num_votes = df.loc[sampled_index, "human_score_count"]
+        people_str = "people" if num_votes > 1 else "person"
         if num_votes == 0:
             human_score = None
             review = ""
         elif human_score > 3:
-            review = f"{num_votes} people found this conversation funny"
+            review = f"{num_votes} {people_str} found this conversation funny"
         elif human_score > 2:
-            review = f"{num_votes} people found this conversation alright"
+            review = f"{num_votes} {people_str} found this conversation alright"
         else:
-            review = f"{num_votes} people found this conversation boring"
+            review = f"{num_votes} {people_str} found this conversation boring"
 
     except KeyError:
         is_human_score = False

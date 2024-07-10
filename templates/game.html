@@ -187,6 +187,15 @@
     <span>✅ Human approved - </span>
     {% endif %}
     <i>{{ human_score_data.review }}</i>
+    <div class="mt-4">
+      Is this conversation funny?
+      <a class="cursor-pointer" onclick="submitVote(1)">|😐 No | </a>
+      <a class="cursor-pointer" onclick="submitVote(3.1)">🤷‍♂️ Mid | </a>
+      <a class="cursor-pointer" onclick="submitVote(5)">😄 Yes |</a>
+    </div>
+    <nav id="voteConfirmation"></nav>
+    <button class="mt-4 text-primary-foreground p-2 rounded float-right" onclick="window.location.href = '/game/{{ game_id }}'">Skip</button>
+
   </div>
   <div class="mt-4 bg-popover text-popover-foreground p-4 rounded-lg w-full max-w-lg space-y-4">
     {% for i in range(unique_authors|length) %}
@@ -200,15 +209,7 @@
       </select>
     </div>
     {% endfor %}
-    <button class="mt-4 bg-primary text-primary-foreground p-2 rounded" onclick="submitVotes()">Submit</button>
-    <div class="mt-4">
-      Is this conversation funny?
-      <a class="cursor-pointer" onclick="submitVote(1)">|😐 No | </a>
-      <a class="cursor-pointer" onclick="submitVote(3.1)">🤷‍♂️ Mid | </a>
-      <a class="cursor-pointer" onclick="submitVote(5)">😄 Yes |</a>
-    </div>
-    <nav id="voteConfirmation"></nav>
-    
+    <button class="mt-4 bg-primary text-primary-foreground p-2 rounded" onclick="submitVotes()">Submit</button>    
     <script>
       async function submitVote(vote) {
         const url = `/vote/{{ game_id }}/{{conversation_id}}/${vote}`;
