@@ -103,7 +103,7 @@ def get_next_round(game_id: str) -> Dict[str, Any]:
         return_data["messages"].append({
             "content": message_data["message"],
             "date": message_data["date"].split(" ")[0],
-            "time": message_data["date"].split(" ")[1][:-3],
+            "time": message_data["date"].split(" ")[1],
             "author": game["members_nickname"] + " " + str(anonymized_index + 1)
         })
 
