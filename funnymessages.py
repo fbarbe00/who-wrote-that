@@ -22,14 +22,20 @@ args = parser.parse_args()
 
 DEBUG = True
 
+log_file = args.chat_file[:-4] + "_log.txt"
+tmp_cvs = args.chat_file[:-4] + "_tmp.csv"
 df = None
 if args.chat_file.endswith('.csv'):
     df = pd.read_csv(args.chat_file)
+elif os.path.exists(tmp_cvs):
+    answer = input(f"Found a temporary file {tmp_cvs}, do you want to resume from there? [y/n]\n>> ")
+    if answer.lower() == 'y':
+        print(f"Resuming from {tmp_cvs}")
+        df = pd.read_csv(tmp_cvs)
 else:
     df = df_from_whatsapp(args.chat_file)
 
-log_file = args.chat_file[:-4] + "_log.txt"
-tmp_cvs = args.chat_file[:-4] + "_tmp.csv"
+
 
 ## Step 1: Preprocess the chat
 df = df.dropna(subset=['message'])
